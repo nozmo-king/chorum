@@ -53,7 +53,3 @@ cargo build --release
   - `templates/` - Template files
 - `migrations/` - Database migrations
 - `target/` - Build artifacts
-
-## License
-
-This project is open source.
