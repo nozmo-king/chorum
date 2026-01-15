@@ -26,10 +26,13 @@
 ### Prerequisites
 
 - Rust toolchain (1.70+)
-- ALSA development libraries (Linux):
-  ```bash
-  sudo apt-get install libasound2-dev
-  ```
+- Platform-specific audio libraries:
+  - **Linux**: ALSA development libraries
+    ```bash
+    sudo apt-get install libasound2-dev
+    ```
+  - **macOS**: No additional dependencies (uses CoreAudio via CPAL)
+  - **Windows**: Not yet tested (should work via WASAPI)
 
 ### Build
 
