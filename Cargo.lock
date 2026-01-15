@@ -216,6 +216,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "chordworld_pow"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "chordworld_core",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "chordworld_tui"
 version = "0.1.0"
 dependencies = [

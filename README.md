@@ -15,6 +15,8 @@
 - **Real-Time Audio**: CPAL-based audio engine with lock-free processing
 - **Deterministic**: Bit-exact replay from transaction logs
 - **Doctrine Mode**: TempleOS-inspired constraints for simplicity and safety
+- **21e8 Protocol**: Aesthetic proof-of-work generating microtonal tuning systems
+- **Microtonal Synthesis**: Hash-derived exotic scales and deterministic entropy
 - **Extensible**: Designed for future synthesis and microtuning layers
 
 ---
@@ -106,13 +108,53 @@ chorum/
 │   ├── chordworld_world/     # World state and graph
 │   ├── chordworld_engine/    # Audio engine (CPAL)
 │   ├── chordworld_tui/       # Terminal UI
+│   ├── chordworld_pow/       # 21e8 proof-of-work + microtonality
 │   └── chordworld_app/       # Main binary
 ├── docs/
 │   ├── ARCHITECTURE.md       # System architecture
 │   ├── DOCTRINE.md          # Operational constraints
-│   └── COMMANDS.md          # Command reference
+│   ├── COMMANDS.md          # Command reference
+│   └── 21E8_PROTOCOL.md     # Aesthetic PoW + microtonality
 └── README.md                # This file
 ```
+
+---
+
+## The 21e8 Protocol
+
+**Aesthetic Proof-of-Work + Microtonal Entropy**
+
+CHORDWORLD implements the **21e8 paradigm** - where beautiful cryptographic hashes generate exotic musical tuning systems. Not all hashes are equal: some possess **aesthetic supremacy**.
+
+### How It Works
+
+1. **Mine Aesthetic Hashes**: Find hashes with rare patterns (leading zeros, palindromes, magic sequences like "21e8")
+2. **Derive Tuning Systems**: Each hash generates a unique microtonal scale (19-72 EDO with micro-detuning)
+3. **Deterministic Entropy**: Use hash pools as reproducible randomness for composition
+4. **Rarity Classification**: Common → Uncommon → Rare → Epic → Legendary → Supreme
+
+### Example
+
+```bash
+# Mine a hash with aesthetic criteria
+:pow.mine "my-song" 20           # Find hash with 20+ leading zeros
+
+# Hash generates a microtonal scale
+# e.g., 31-EDO with ±2.5 cent detuning
+
+# Use for composition
+:tuning.set <hash>                # Set active tuning from hash
+:node.add MicrotonalOsc osc      # Use hash-derived scale
+```
+
+### Philosophy
+
+Inspired by Bitcoin block #528249 (`00000000000000000021e800...`), the 21e8 protocol recognizes that:
+- **Compute can create art**: Beautiful hashes are aesthetic artifacts
+- **Proof-of-work transcends security**: It becomes a medium of expression
+- **Musical xenharmony from cryptographic chaos**: Hash entropy → exotic scales
+
+See [docs/21E8_PROTOCOL.md](docs/21E8_PROTOCOL.md) for the complete specification.
 
 ---
 
@@ -153,6 +195,7 @@ CHORDWORLD is the first component of **CHORUM**, a larger system:
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and thread model
 - [DOCTRINE.md](docs/DOCTRINE.md) - Operational constraints and enforcement
 - [COMMANDS.md](docs/COMMANDS.md) - Command reference
+- [21E8_PROTOCOL.md](docs/21E8_PROTOCOL.md) - Aesthetic PoW and microtonality
 
 ---
 
