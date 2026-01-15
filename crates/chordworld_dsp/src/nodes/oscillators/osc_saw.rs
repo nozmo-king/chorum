@@ -1,8 +1,7 @@
-//! Sine wave oscillator
+//! Sawtooth wave oscillator - bright, rich harmonics
 
 use crate::{AudioBusMut, AudioBusRef, DspNode, ParamSpec, PortSpec, ProcessCtx};
 use chordworld_core::{EventQueue, ParamIndex, ParamValue};
-use std::f32::consts::TAU;
 
 const PARAM_FREQ: u32 = 0;
 const PARAM_AMP: u32 = 1;
@@ -14,14 +13,14 @@ static PARAMS: &[ParamSpec] = &[
     ParamSpec::new("amp", 0.5, 0.0, 1.0, ""),
 ];
 
-pub struct OscSine {
+pub struct OscSaw {
     phase: f32,
     freq: f32,
     amp: f32,
     sample_rate: f32,
 }
 
-impl OscSine {
+impl OscSaw {
     pub fn new() -> Self {
         Self {
             phase: 0.0,
@@ -32,9 +31,9 @@ impl OscSine {
     }
 
     fn process_sample(&mut self) -> f32 {
-        let output = (self.phase * TAU).sin() * self.amp;
+        // Sawtooth: linear ramp from -1 to 1
+        let output = (2.0 * self.phase - 1.0) * self.amp;
 
-        // Advance phase
         self.phase += self.freq / self.sample_rate;
         if self.phase >= 1.0 {
             self.phase -= 1.0;
@@ -44,13 +43,13 @@ impl OscSine {
     }
 }
 
-impl Default for OscSine {
+impl Default for OscSaw {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DspNode for OscSine {
+impl DspNode for OscSaw {
     fn reset(&mut self, sample_rate: f32) {
         self.sample_rate = sample_rate;
         self.phase = 0.0;
@@ -77,29 +76,13 @@ impl DspNode for OscSine {
         }
     }
 
-    fn handle_events(&mut self, _ctx: &ProcessCtx, _events: &mut EventQueue) {
-        // No event handling for now
-    }
+    fn handle_events(&mut self, _ctx: &ProcessCtx, _events: &mut EventQueue) {}
 }
 
-impl crate::NodeDescriptor for OscSine {
-    fn type_name(&self) -> &'static str {
-        "OscSine"
-    }
-
-    fn ports(&self) -> &'static [PortSpec] {
-        PORTS
-    }
-
-    fn params(&self) -> &'static [ParamSpec] {
-        PARAMS
-    }
-
-    fn display_name(&self) -> &'static str {
-        "Sine Oscillator"
-    }
-
-    fn category(&self) -> &'static str {
-        "Oscillators"
-    }
+impl crate::NodeDescriptor for OscSaw {
+    fn type_name(&self) -> &'static str { "OscSaw" }
+    fn ports(&self) -> &'static [PortSpec] { PORTS }
+    fn params(&self) -> &'static [ParamSpec] { PARAMS }
+    fn display_name(&self) -> &'static str { "Sawtooth Oscillator" }
+    fn category(&self) -> &'static str { "Oscillators" }
 }

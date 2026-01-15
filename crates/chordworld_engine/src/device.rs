@@ -1,6 +1,6 @@
 //! Audio device management with CPAL
 
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::traits::{DeviceTrait, HostTrait};
 use cpal::{Device, Host, Stream, StreamConfig};
 use thiserror::Error;
 
@@ -19,7 +19,16 @@ pub enum DeviceError {
     PlayStream(#[from] cpal::PlayStreamError),
 }
 
-/// Audio device configuration
+/// Represents the actual block size being used
+#[derive(Debug, Clone, Copy)]
+pub enum ActualBlockSize {
+    /// Fixed block size (requested and confirmed)
+    Fixed(u32),
+    /// Default/variable block size (device decides)
+    Default,
+}
+
+/// Audio device configuration (requested)
 pub struct AudioDeviceConfig {
     pub sample_rate: f32,
     pub channels: u16,
@@ -31,9 +40,18 @@ impl AudioDeviceConfig {
         Self {
             sample_rate: 48000.0,
             channels: 2,
-            block_size: 256,
+            block_size: 512, // Use 512 for better macOS compatibility
         }
     }
+}
+
+/// Actual device configuration (what the device is using)
+pub struct ActualDeviceConfig {
+    pub sample_rate: f32,
+    pub channels: u16,
+    pub block_size: ActualBlockSize,
+    /// Fallback block size for buffer allocation when using Default
+    pub buffer_frames: u32,
 }
 
 /// Audio device manager
@@ -41,7 +59,7 @@ pub struct AudioDevice {
     _host: Host,
     device: Device,
     config: StreamConfig,
-    pub actual_config: AudioDeviceConfig,
+    pub actual_config: ActualDeviceConfig,
 }
 
 impl AudioDevice {
@@ -58,16 +76,32 @@ impl AudioDevice {
         let sample_rate = supported_config.sample_rate().0;
         let channels = supported_config.channels();
 
+        // On macOS, use Default buffer size for better compatibility
+        // CoreAudio handles buffer sizing automatically
+        #[cfg(target_os = "macos")]
+        let (buffer_size, block_size_type) = {
+            (cpal::BufferSize::Default, ActualBlockSize::Default)
+        };
+
+        #[cfg(not(target_os = "macos"))]
+        let (buffer_size, block_size_type) = {
+            (
+                cpal::BufferSize::Fixed(requested_config.block_size),
+                ActualBlockSize::Fixed(requested_config.block_size),
+            )
+        };
+
         let config = StreamConfig {
             channels,
             sample_rate: cpal::SampleRate(sample_rate),
-            buffer_size: cpal::BufferSize::Fixed(requested_config.block_size),
+            buffer_size,
         };
 
-        let actual_config = AudioDeviceConfig {
+        let actual_config = ActualDeviceConfig {
             sample_rate: sample_rate as f32,
             channels,
-            block_size: requested_config.block_size,
+            block_size: block_size_type,
+            buffer_frames: requested_config.block_size, // Use as fallback for buffer allocation
         };
 
         Ok(Self {
@@ -103,7 +137,13 @@ impl AudioDevice {
         self.actual_config.channels
     }
 
-    pub fn block_size(&self) -> u32 {
+    /// Returns the buffer frame count for allocation purposes
+    pub fn buffer_frames(&self) -> u32 {
+        self.actual_config.buffer_frames
+    }
+
+    /// Returns whether we're using a fixed or default buffer size
+    pub fn block_size_mode(&self) -> ActualBlockSize {
         self.actual_config.block_size
     }
 }

@@ -2,7 +2,6 @@
 
 use crate::command::CommandParser;
 use chordworld_core::{Transaction, TransactionResult};
-use chordworld_world::WorldState;
 use crossbeam_channel::{Receiver, Sender};
 
 /// TUI mode

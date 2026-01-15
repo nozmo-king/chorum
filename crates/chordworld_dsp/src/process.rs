@@ -1,6 +1,6 @@
 //! Processing context and types
 
-use chordworld_core::{EventQueue, SampleTime};
+use chordworld_core::SampleTime;
 
 /// Processing context passed to nodes during process()
 pub struct ProcessCtx {

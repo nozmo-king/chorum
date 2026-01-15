@@ -38,8 +38,8 @@ impl GraphSnapshot {
     }
 
     /// Process one block of audio
-    pub fn process(&self, buffers: &mut BufferPool, block_size: u32, start_time: SampleTime) {
-        let ctx = ProcessCtx::new(self.sample_rate, block_size, start_time);
+    pub fn process(&self, _buffers: &mut BufferPool, block_size: u32, start_time: SampleTime) {
+        let _ctx = ProcessCtx::new(self.sample_rate, block_size, start_time);
 
         for snapshot_node in &self.dispatch_order {
             if snapshot_node.bypassed {
@@ -73,11 +73,11 @@ impl SnapshotCompiler {
         // 3. Handle feedback loops
         // 4. Build dispatch plan
 
-        let mut dispatch_order = Vec::new();
+        let dispatch_order = Vec::new();
         let mut buffer_count = 0;
 
         // For now, just iterate nodes in arbitrary order
-        for node in graph.nodes() {
+        for _node in graph.nodes() {
             // Clone the node instance (we'll need Arc or similar in practice)
             // For now, skip actual node instances
             buffer_count += 2; // Simplified: 2 buffers per node

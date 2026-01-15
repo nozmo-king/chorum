@@ -4,7 +4,7 @@ use crate::{AudioDevice, AudioDeviceConfig, DeviceError};
 use chordworld_core::SampleTime;
 use chordworld_dsp::BufferPool;
 use chordworld_world::{GraphSnapshot, WorldState};
-use crossbeam_channel::{Receiver, Sender, bounded};
+use crossbeam_channel::{Sender, bounded};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
@@ -45,9 +45,9 @@ impl AudioEngine {
     }
 
     pub fn start(&mut self, initial_snapshot: Arc<GraphSnapshot>) -> Result<(), EngineError> {
-        let block_size = self.device.block_size();
+        let buffer_frames = self.device.buffer_frames();
         let channels = self.device.channels() as usize;
-        let sample_rate = self.device.sample_rate();
+        let _sample_rate = self.device.sample_rate();
 
         // Create channel for snapshot updates
         let (snapshot_tx, snapshot_rx) = bounded::<Arc<GraphSnapshot>>(2);
@@ -57,14 +57,18 @@ impl AudioEngine {
         let current_snapshot = Arc::new(Mutex::new(initial_snapshot));
         let current_snapshot_clone = current_snapshot.clone();
 
-        // Audio thread state
-        let mut buffer_pool = BufferPool::new(64, block_size as usize);
+        // Audio thread state - use larger buffer pool for variable buffer sizes on macOS
+        let max_buffer_size = buffer_frames.max(2048) as usize;
+        let mut buffer_pool = BufferPool::new(64, max_buffer_size);
         let mut sample_time = SampleTime::zero();
         let time_counter = self.current_time.clone();
 
         // Build the audio stream
         let stream = self.device.build_output_stream(
             move |output: &mut [f32]| {
+                // Calculate actual block size from output buffer
+                let actual_block_size = (output.len() / channels) as u32;
+
                 // Check for snapshot updates (non-blocking)
                 if let Ok(new_snapshot) = snapshot_rx.try_recv() {
                     *current_snapshot_clone.lock().unwrap() = new_snapshot;
@@ -76,9 +80,9 @@ impl AudioEngine {
                 // Get current snapshot
                 let snapshot = current_snapshot_clone.lock().unwrap();
 
-                // Process the graph
+                // Process the graph with actual block size
                 buffer_pool.clear_all();
-                snapshot.process(&mut buffer_pool, block_size, sample_time);
+                snapshot.process(&mut buffer_pool, actual_block_size, sample_time);
 
                 // Copy to output (simplified - assumes buffer 0 is output)
                 if let Some(buffer) = buffer_pool.get(0) {
@@ -91,7 +95,7 @@ impl AudioEngine {
                 }
 
                 // Advance time
-                sample_time = sample_time.add(block_size as u64);
+                sample_time = sample_time.add(actual_block_size as u64);
                 *time_counter.lock().unwrap() = sample_time;
             },
             |err| {

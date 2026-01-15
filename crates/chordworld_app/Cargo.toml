@@ -18,3 +18,4 @@ crossbeam-channel = { workspace = true }
 anyhow = { workspace = true }
 crossterm = { workspace = true }
 ratatui = { workspace = true }
+cpal = { workspace = true }

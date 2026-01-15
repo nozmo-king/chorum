@@ -177,6 +177,7 @@ dependencies = [
  "chordworld_engine",
  "chordworld_tui",
  "chordworld_world",
+ "cpal",
  "crossbeam-channel",
  "crossterm",
  "ratatui",

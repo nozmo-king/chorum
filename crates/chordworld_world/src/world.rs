@@ -2,11 +2,10 @@
 
 use crate::{GraphModel, GraphSnapshot, Pattern, SnapshotCompiler, Song};
 use chordworld_core::{
-    ApplyPoint, DoctrineConfig, IdGenerator, MusicalTime, ParamIndex, PatternId, TimingConfig,
-    Transaction, TransactionId, TransactionRecord, TransactionResult, TransportState, WorldTime,
+    DoctrineConfig, IdGenerator, MusicalTime, PatternId, TimingConfig,
+    Transaction, TransactionRecord, TransactionResult, TransportState, WorldTime,
 };
 use chordworld_dsp::NodeRegistry;
-use std::collections::HashMap;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -146,7 +145,7 @@ impl WorldState {
                 Ok(TransactionResult::success_with(format!("Removed node {}", node)))
             }
 
-            Transaction::Connect { src, dst, map } => {
+            Transaction::Connect { src, dst, map: _ } => {
                 let conn_id = self.graph.connect(
                     src.node,
                     &src.port_name,
@@ -166,7 +165,7 @@ impl WorldState {
                 Ok(TransactionResult::success())
             }
 
-            Transaction::TransportSet { state, apply } => {
+            Transaction::TransportSet { state, apply: _ } => {
                 match state {
                     TransportState::Playing => self.transport.play(),
                     TransportState::Stopped => self.transport.stop(),
