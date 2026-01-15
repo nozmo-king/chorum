@@ -7,6 +7,7 @@ members = [
     "crates/chordworld_engine",
     "crates/chordworld_tui",
     "crates/chordworld_app",
+    "crates/chordworld_pow",
 ]
 
 [workspace.package]
@@ -22,6 +23,7 @@ chordworld_dsp = { path = "crates/chordworld_dsp" }
 chordworld_world = { path = "crates/chordworld_world" }
 chordworld_engine = { path = "crates/chordworld_engine" }
 chordworld_tui = { path = "crates/chordworld_tui" }
+chordworld_pow = { path = "crates/chordworld_pow" }
 
 # Audio
 cpal = "0.15"
