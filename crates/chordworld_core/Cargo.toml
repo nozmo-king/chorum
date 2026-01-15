@@ -1,0 +1,11 @@
+[package]
+name = "chordworld_core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+blake3 = { workspace = true }
+ciborium = { workspace = true }

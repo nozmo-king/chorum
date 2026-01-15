@@ -1,0 +1,20 @@
+[package]
+name = "chordworld_app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "chordworld"
+path = "src/main.rs"
+
+[dependencies]
+chordworld_core = { workspace = true }
+chordworld_dsp = { workspace = true }
+chordworld_world = { workspace = true }
+chordworld_engine = { workspace = true }
+chordworld_tui = { workspace = true }
+crossbeam-channel = { workspace = true }
+anyhow = { workspace = true }
+crossterm = { workspace = true }
+ratatui = { workspace = true }
