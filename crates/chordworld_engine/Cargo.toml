@@ -1,0 +1,15 @@
+[package]
+name = "chordworld_engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+chordworld_core = { workspace = true }
+chordworld_dsp = { workspace = true }
+chordworld_world = { workspace = true }
+cpal = { workspace = true }
+ringbuf = { workspace = true }
+crossbeam-channel = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }

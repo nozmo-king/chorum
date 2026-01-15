@@ -1,29 +1,46 @@
-[package]
-name = "haich2"
+[workspace]
+resolver = "2"
+members = [
+    "crates/chordworld_core",
+    "crates/chordworld_dsp",
+    "crates/chordworld_world",
+    "crates/chordworld_engine",
+    "crates/chordworld_tui",
+    "crates/chordworld_app",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["CHORDWORLD"]
 
-[dependencies]
-axum = "0.7"
-tokio = { version = "1.0", features = ["full"] }
-tower = "0.4"
-tower-http = { version = "0.5", features = ["fs", "trace", "cors"] }
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "uuid", "chrono"] }
+[workspace.dependencies]
+# Core crates
+chordworld_core = { path = "crates/chordworld_core" }
+chordworld_dsp = { path = "crates/chordworld_dsp" }
+chordworld_world = { path = "crates/chordworld_world" }
+chordworld_engine = { path = "crates/chordworld_engine" }
+chordworld_tui = { path = "crates/chordworld_tui" }
+
+# Audio
+cpal = "0.15"
+
+# TUI
+ratatui = "0.28"
+crossterm = "0.28"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-uuid = { version = "1.0", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-sha2 = "0.10"
-hex = "0.4"
-askama = { version = "0.12", features = ["with-axum"] }
-askama_axum = "0.4"
-tracing = "0.1"
-tracing-subscriber = "0.3"
+ciborium = "0.2"
+
+# Utilities
+blake3 = "1.5"
+ringbuf = "0.4"
+crossbeam-channel = "0.5"
+smallvec = "1.13"
 thiserror = "1.0"
 anyhow = "1.0"
-config = "0.14"
-secp256k1 = { version = "0.28", features = ["rand", "serde"] }
-rand = "0.8"
 
-[dev-dependencies]
-tower-test = "0.4"
+# WAV export
+hound = "3.5"
