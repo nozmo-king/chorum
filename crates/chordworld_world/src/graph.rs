@@ -213,6 +213,11 @@ impl GraphModel {
         self.connections.len()
     }
 
+    /// Create a node instance from the registry (for snapshot compilation)
+    pub fn registry_create(&self, node_type: &str) -> Option<Box<dyn Node>> {
+        self.registry.create(node_type)
+    }
+
     pub fn validate(&self) -> Result<Vec<String>, GraphError> {
         let mut warnings = Vec::new();
 
