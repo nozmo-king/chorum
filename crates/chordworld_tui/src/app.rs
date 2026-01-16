@@ -14,6 +14,53 @@ pub enum TuiMode {
     Mix,
     Inspect,
     Log,
+    Help, // Documentation viewer
+}
+
+/// Help/docs pages
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelpPage {
+    Overview,
+    Tracker,
+    Patch,
+    Pathologies,
+    Commands,
+    Philosophy,
+}
+
+impl HelpPage {
+    pub fn next(self) -> Self {
+        match self {
+            HelpPage::Overview => HelpPage::Tracker,
+            HelpPage::Tracker => HelpPage::Patch,
+            HelpPage::Patch => HelpPage::Pathologies,
+            HelpPage::Pathologies => HelpPage::Commands,
+            HelpPage::Commands => HelpPage::Philosophy,
+            HelpPage::Philosophy => HelpPage::Overview,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            HelpPage::Overview => HelpPage::Philosophy,
+            HelpPage::Tracker => HelpPage::Overview,
+            HelpPage::Patch => HelpPage::Tracker,
+            HelpPage::Pathologies => HelpPage::Patch,
+            HelpPage::Commands => HelpPage::Pathologies,
+            HelpPage::Philosophy => HelpPage::Commands,
+        }
+    }
+
+    pub fn title(self) -> &'static str {
+        match self {
+            HelpPage::Overview => "CHURCHKEY Overview",
+            HelpPage::Tracker => "Tracker Mode",
+            HelpPage::Patch => "Patch Graph",
+            HelpPage::Pathologies => "Temporal Pathologies",
+            HelpPage::Commands => "Commands",
+            HelpPage::Philosophy => "Philosophy",
+        }
+    }
 }
 
 /// Message from TUI to engine/world
@@ -107,6 +154,10 @@ pub struct App {
     pub tracker_state: TrackerState,
     pub tracker_view: TrackerView,
 
+    // Help/docs viewer
+    pub help_page: HelpPage,
+    pub help_scroll: usize,
+
     // Communication
     pub tx: Sender<TuiMessage>,
     rx: Receiver<EngineMessage>,
@@ -136,6 +187,8 @@ impl App {
             entropy_display: None,
             tracker_state: TrackerState::new(),
             tracker_view: TrackerView::new(),
+            help_page: HelpPage::Overview,
+            help_scroll: 0,
             tx,
             rx,
             command_parser: CommandParser::new(),

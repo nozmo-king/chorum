@@ -56,11 +56,12 @@ fn render_top_bar_with_tabs(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(title, chunks[0]);
 
     // Mode tabs
-    let mode_names = vec!["F1:Track", "F2:Patch", "F3:Mix"];
+    let mode_names = vec!["F1:Track", "F2:Patch", "F3:Mix", "?:Help"];
     let selected = match app.mode {
         TuiMode::Tracker => 0,
         TuiMode::Patch => 1,
         TuiMode::Mix => 2,
+        TuiMode::Help => 3,
         _ => 0,
     };
     let tabs = Tabs::new(mode_names)
@@ -234,6 +235,9 @@ fn render_workspace_pane(f: &mut Frame, app: &App, area: Rect) {
         }
         TuiMode::Mix => {
             render_mix_view(f, app, content_area);
+        }
+        TuiMode::Help => {
+            render_help_view(f, app, content_area);
         }
         _ => {
             render_welcome(f, content_area);
@@ -516,6 +520,362 @@ fn render_mix_view(f: &mut Frame, app: &App, area: Rect) {
 
     let paragraph = Paragraph::new(lines);
     f.render_widget(paragraph, inner);
+}
+
+fn render_help_view(f: &mut Frame, app: &App, area: Rect) {
+    use crate::app::HelpPage;
+
+    let block = Block::default()
+        .title(format!(" {} [←/→ page | ↑/↓ scroll | Esc exit] ", app.help_page.title()))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Palette::BRIGHT_MAGENTA));
+
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+
+    let content = match app.help_page {
+        HelpPage::Overview => get_overview_content(),
+        HelpPage::Tracker => get_tracker_content(),
+        HelpPage::Patch => get_patch_content(),
+        HelpPage::Pathologies => get_pathologies_content(),
+        HelpPage::Commands => get_commands_content(),
+        HelpPage::Philosophy => get_philosophy_content(),
+    };
+
+    // Apply scroll offset
+    let visible_lines: Vec<Line> = content
+        .into_iter()
+        .skip(app.help_scroll)
+        .take(inner.height as usize)
+        .collect();
+
+    let paragraph = Paragraph::new(visible_lines);
+    f.render_widget(paragraph, inner);
+}
+
+fn get_overview_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("    ██████╗██╗  ██╗██╗   ██╗██████╗  ██████╗██╗  ██╗██╗  ██╗███████╗██╗   ██╗", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("   ██╔════╝██║  ██║██║   ██║██╔══██╗██╔════╝██║  ██║██║ ██╔╝██╔════╝╚██╗ ██╔╝", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("   ██║     ███████║██║   ██║██████╔╝██║     ███████║█████╔╝ █████╗   ╚████╔╝ ", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("   ██║     ██╔══██║██║   ██║██╔══██╗██║     ██╔══██║██╔═██╗ ██╔══╝    ╚██╔╝  ", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("   ╚██████╗██║  ██║╚██████╔╝██║  ██║╚██████╗██║  ██║██║  ██╗███████╗   ██║   ", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("    ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(""),
+        Line::from(Span::styled("   ═══════════════════════════════════════════════════════════════════════════", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("       DETERMINISTIC · KEYBOARD-FIRST · TRACKER + PATCH GRAPH AUDIO", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("   ═══════════════════════════════════════════════════════════════════════════", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   CHURCHKEY is a hostile audio workstation. It is designed for those who", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("   find comfort in constraint. The TempleOS palette. The tracker grid.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("   The patch cable as universal connector.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   MODES", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("      F1 Tracker  ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Pattern sequencer (Renoise-style)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      F2 Patch    ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Modular signal graph (PureData-style)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      F3 Mix      ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Track mixer with mute/solo", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      ?  Help     ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("This documentation viewer", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("   QUICK START", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("      :setup.basic ", Style::default().fg(Palette::BRIGHT_MAGENTA)),
+            Span::styled("→ Sine oscillator (hear sound immediately)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      :setup.fm    ", Style::default().fg(Palette::BRIGHT_MAGENTA)),
+            Span::styled("→ FM synthesis chain", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      :setup.pad   ", Style::default().fg(Palette::BRIGHT_MAGENTA)),
+            Span::styled("→ Ambient pad (sine+saw+reverb)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("   CONTROLS", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("      :          ", Style::default().fg(Palette::YELLOW)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Enter command mode", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Tab        ", Style::default().fg(Palette::YELLOW)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Autocomplete command", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Ctrl+N     ", Style::default().fg(Palette::YELLOW)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Open node browser", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Ctrl+S     ", Style::default().fg(Palette::YELLOW)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Toggle oscilloscope", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Ctrl+Q     ", Style::default().fg(Palette::YELLOW)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Quit", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+    ]
+}
+
+fn get_tracker_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("   ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ ", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("   ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("      ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("      ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("      ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(""),
+        Line::from(Span::styled("   The tracker is a vertical timeline. Time flows down.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   CELL FORMAT", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(Span::styled("      ┌────────────────────────────────────────┐", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("      │  C-4  01  64  D03  E02  │", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("      │  ───  ──  ──  ───  ───  │", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("      │ Note Inst Vol  FX1  FX2 │", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("      └────────────────────────────────────────┘", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   KEYBOARD LAYOUT (Piano)", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(Span::styled("      Lower octave:", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("        Z=C  S=C# X=D  D=D# C=E  V=F  G=F# B=G  H=G# N=A  J=A# M=B", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(""),
+        Line::from(Span::styled("      Upper octave:", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("        Q=C  2=C# W=D  3=D# E=E  R=F  5=F# T=G  6=G# Y=A  7=A# U=B", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(""),
+        Line::from(Span::styled("   NAVIGATION", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("      ↑↓←→ / hjkl ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Move cursor", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Tab/Shift+Tab", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Cycle columns (Note→Inst→Vol→FX)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Space/Enter  ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Enter edit mode", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      PageUp/Down  ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Jump 16 rows", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      Delete/Backsp", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Clear current cell", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+    ]
+}
+
+fn get_patch_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("   ██████╗  █████╗ ████████╗ ██████╗██╗  ██╗", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("   ██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██║  ██║", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("   ██████╔╝███████║   ██║   ██║     ███████║", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("   ██╔═══╝ ██╔══██║   ██║   ██║     ██╔══██║", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("   ██║     ██║  ██║   ██║   ╚██████╗██║  ██║", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("   ╚═╝     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(""),
+        Line::from(Span::styled("   Modular signal routing. PureData-style patch cables.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   NODE TYPES", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(Span::styled("   OSCILLATORS", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("      OscSine, OscSaw, OscSquare, OscTriangle, OscNoise, OscFM", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   FILTERS", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("      FilterSVF, FilterMoog, FilterLP, FilterHP, FilterBP", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   EFFECTS", Style::default().fg(Palette::BRIGHT_MAGENTA))),
+        Line::from(Span::styled("      FxDelay, FxReverb, FxDistortion, FxChorus, FxCompressor", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   MODULATORS", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("      ModLFO, ModSeq, ModSampleHold, ModEnvFollow, ModSlew", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   COMMANDS", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("      :node.add <type>      ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Create node", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      :connect <a>:<p> <b>:<p>", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Connect nodes", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("      :param.set <n>.<p> <v>", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ ", Style::default().fg(Palette::FG_DIM)),
+            Span::styled("Set parameter", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+    ]
+}
+
+fn get_pathologies_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("   ██████╗  █████╗ ████████╗██╗  ██╗ ██████╗ ██╗      ██████╗  ██████╗ ██╗███████╗███████╗", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(Span::styled("   ██╔══██╗██╔══██╗╚══██╔══╝██║  ██║██╔═══██╗██║     ██╔═══██╗██╔════╝ ██║██╔════╝██╔════╝", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(Span::styled("   ██████╔╝███████║   ██║   ███████║██║   ██║██║     ██║   ██║██║  ███╗██║█████╗  ███████╗", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(Span::styled("   ██╔═══╝ ██╔══██║   ██║   ██╔══██║██║   ██║██║     ██║   ██║██║   ██║██║██╔══╝  ╚════██║", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(Span::styled("   ██║     ██║  ██║   ██║   ██║  ██║╚██████╔╝███████╗╚██████╔╝╚██████╔╝██║███████╗███████║", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(Span::styled("   ╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚══════╝", Style::default().fg(Palette::BRIGHT_RED))),
+        Line::from(""),
+        Line::from(Span::styled("   \"These are not jokes; they are hostile edge cases.\"", Style::default().fg(Palette::FG_DIM).add_modifier(Modifier::ITALIC))),
+        Line::from(""),
+        Line::from(Span::styled("   Mathematically definable but humanly unperformable musical constructs.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   AVAILABLE PATHOLOGIES", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("   irrational-meter   ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Meter defined as √2/π beats (~0.4502)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   golden-polyrhythm  ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Periods in φ ratio - never phase-locks", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   event-horizon      ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Notes accelerate to infinite density", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   pitch-drift        ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Continuous pitch manifold (no steps)", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   saboteur           ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Detects patterns and violates them", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   phantom-voices     ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Psychoacoustic combination tones", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   trap               ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ False predictive model violation", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(vec![
+            Span::styled("   unmeasurable       ", Style::default().fg(Palette::BRIGHT_CYAN)),
+            Span::styled("│ Non-integrable tempo function", Style::default().fg(Palette::FG_PRIMARY)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("   USAGE: :path <name> [key=value]", Style::default().fg(Palette::BRIGHT_GREEN))),
+        Line::from(Span::styled("          :path irrational-meter base_bpm=120", Style::default().fg(Palette::FG_DIM))),
+    ]
+}
+
+fn get_commands_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("    ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("   ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("   ██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║███████╗", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("   ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║╚════██║", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("   ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████║", Style::default().fg(Palette::YELLOW))),
+        Line::from(Span::styled("    ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝", Style::default().fg(Palette::YELLOW))),
+        Line::from(""),
+        Line::from(Span::styled("   Press : to enter command mode. Tab to autocomplete.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   NODE OPERATIONS", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :node.add <type> [name]     Create node", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :node.rm <id>               Remove node", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   CONNECTIONS", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :connect <src>:<port> <dst>:<port>", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   PARAMETERS", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :param.set <node>.<param> <value>", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   TRANSPORT", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :play          Start playback", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :stop          Stop playback", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :tempo <bpm>   Set tempo", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   21E8 MICROTUNING", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :pow.mine <seed>      Mine aesthetic hash", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :tuning.set <hash>    Apply tuning from hash", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :tuning.random        Random microtonal scale", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :tuning.clear         Return to 12-TET", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   QUICK SETUPS", Style::default().fg(Palette::BRIGHT_GREEN).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      :setup.basic   OscSine → Out", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :setup.fm      FM synthesis chain", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      :setup.pad     Ambient pad (sine+saw+reverb)", Style::default().fg(Palette::FG_PRIMARY))),
+    ]
+}
+
+fn get_philosophy_content() -> Vec<Line<'static>> {
+    vec![
+        Line::from(""),
+        Line::from(Span::styled("   ██████╗ ██╗  ██╗██╗██╗      ██████╗ ███████╗ ██████╗ ██████╗ ██╗  ██╗██╗   ██╗", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(Span::styled("   ██╔══██╗██║  ██║██║██║     ██╔═══██╗██╔════╝██╔═══██╗██╔══██╗██║  ██║╚██╗ ██╔╝", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(Span::styled("   ██████╔╝███████║██║██║     ██║   ██║███████╗██║   ██║██████╔╝███████║ ╚████╔╝ ", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(Span::styled("   ██╔═══╝ ██╔══██║██║██║     ██║   ██║╚════██║██║   ██║██╔═══╝ ██╔══██║  ╚██╔╝  ", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(Span::styled("   ██║     ██║  ██║██║███████╗╚██████╔╝███████║╚██████╔╝██║     ██║  ██║   ██║   ", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(Span::styled("   ╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝  ╚═╝   ╚═╝   ", Style::default().fg(Palette::BRIGHT_BLUE))),
+        Line::from(""),
+        Line::from(Span::styled("   CORE PRINCIPLES", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(Span::styled("   1. DETERMINISM", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("      Every operation produces the same result given the same inputs.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      No hidden state. No surprises. The machine is honest.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   2. KEYBOARD-FIRST", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("      The mouse is a distraction. The keyboard is direct connection", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      between thought and action. Every function has a key binding.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   3. CONSTRAINTS AS LIBERATION", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("      16 colors. Fixed grid. Limited effects. These are not limitations—", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      they are boundaries that force creative solutions.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   4. THE TERMINAL IS SACRED", Style::default().fg(Palette::BRIGHT_CYAN))),
+        Line::from(Span::styled("      GUI bloat is spiritual pollution. The terminal is pure text,", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      pure thought, pure signal. No chrome. No distraction.", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(""),
+        Line::from(Span::styled("   ╔═══════════════════════════════════════════════════════════════════╗", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("   ║ \"We shape our tools, and thereafter our tools shape us.\"        ║", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("   ║                                         — Marshall McLuhan      ║", Style::default().fg(Palette::FG_DIM))),
+        Line::from(Span::styled("   ╚═══════════════════════════════════════════════════════════════════╝", Style::default().fg(Palette::FG_DIM))),
+        Line::from(""),
+        Line::from(Span::styled("   INFLUENCES", Style::default().fg(Palette::YELLOW).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("      TempleOS      → The palette, the austerity", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      Renoise/FT2   → The tracker paradigm", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      Pure Data/Max → The patch cable", Style::default().fg(Palette::FG_PRIMARY))),
+        Line::from(Span::styled("      Urbit         → Deterministic computing", Style::default().fg(Palette::FG_PRIMARY))),
+    ]
 }
 
 fn render_welcome(f: &mut Frame, area: Rect) {

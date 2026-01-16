@@ -25,6 +25,7 @@ fn handle_key_event(app: &mut App, key: KeyEvent) -> Result<()> {
         handle_command_mode_input(app, key)
     } else {
         match app.mode {
+            TuiMode::Help => handle_help_mode_input(app, key),
             TuiMode::Tracker => handle_tracker_mode_input(app, key),
             _ => handle_normal_mode_input(app, key),
         }
@@ -73,12 +74,73 @@ fn handle_normal_mode_input(app: &mut App, key: KeyEvent) -> Result<()> {
         KeyCode::Char(':') => {
             app.enter_command_mode();
         }
+        KeyCode::Char('?') => {
+            app.set_mode(TuiMode::Help);
+        }
         KeyCode::Char(' ') => {
             // Toggle play/stop (simplified)
             // In full version, check transport state
         }
         KeyCode::F(1) => {
-            app.status_message = "F1: Help | : command | Tab: autocomplete | Ctrl+N: nodes | Ctrl+S: scope | Ctrl+Q: quit".to_string();
+            app.set_mode(TuiMode::Tracker);
+        }
+        KeyCode::F(2) => {
+            app.set_mode(TuiMode::Patch);
+        }
+        KeyCode::F(3) => {
+            app.set_mode(TuiMode::Mix);
+        }
+        KeyCode::F(4) => {
+            app.set_mode(TuiMode::Help);
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+/// Help mode: navigate documentation pages
+fn handle_help_mode_input(app: &mut App, key: KeyEvent) -> Result<()> {
+    match key.code {
+        KeyCode::Char('q') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            app.quit();
+        }
+        KeyCode::Esc | KeyCode::Char('?') => {
+            // Return to tracker mode
+            app.set_mode(TuiMode::Tracker);
+        }
+        KeyCode::F(1) => {
+            app.set_mode(TuiMode::Tracker);
+        }
+        KeyCode::F(2) => {
+            app.set_mode(TuiMode::Patch);
+        }
+        KeyCode::F(3) => {
+            app.set_mode(TuiMode::Mix);
+        }
+        // Navigate pages
+        KeyCode::Left | KeyCode::Char('h') | KeyCode::BackTab => {
+            app.help_page = app.help_page.prev();
+            app.help_scroll = 0;
+        }
+        KeyCode::Right | KeyCode::Char('l') | KeyCode::Tab => {
+            app.help_page = app.help_page.next();
+            app.help_scroll = 0;
+        }
+        // Scroll within page
+        KeyCode::Up | KeyCode::Char('k') => {
+            app.help_scroll = app.help_scroll.saturating_sub(1);
+        }
+        KeyCode::Down | KeyCode::Char('j') => {
+            app.help_scroll = app.help_scroll.saturating_add(1);
+        }
+        KeyCode::PageUp => {
+            app.help_scroll = app.help_scroll.saturating_sub(10);
+        }
+        KeyCode::PageDown => {
+            app.help_scroll = app.help_scroll.saturating_add(10);
+        }
+        KeyCode::Home => {
+            app.help_scroll = 0;
         }
         _ => {}
     }
