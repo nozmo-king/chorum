@@ -1,14 +1,22 @@
-//! CHORDWORLD TUI
+//! CHURCHKEY TUI
 //!
-//! Terminal user interface with panes, modes, and keyboard navigation
+//! Deterministic, keyboard-first audio workstation TUI
+//! - Tracker workflow (Renoise-like)
+//! - Patch graph (Pure Data/Max-like)
+//! - 16-color EGA palette (TempleOS-inspired constraints)
 
 pub mod app;
-pub mod ui;
-pub mod input;
+pub mod autocomplete;
 pub mod command;
+pub mod input;
+pub mod palette;
 pub mod panes;
+pub mod tracker_view;
+pub mod ui;
 
 pub use app::*;
-pub use ui::*;
-pub use input::*;
+pub use autocomplete::*;
 pub use command::*;
+pub use input::*;
+pub use palette::*;
+pub use ui::*;

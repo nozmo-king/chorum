@@ -30,9 +30,48 @@ impl CommandParser {
                 apply: ApplyPoint::Now,
             }),
             "tempo" => self.parse_tempo(&parts[1..]),
-            "help" => Err(anyhow!("Help: node.add <type> [name], connect <src> <dst>, param.set <node>.<param> <value>, play, stop, tempo <bpm>")),
+            // 21e8 POW commands
+            "pow.mine" => self.parse_pow_mine(&parts[1..]),
+            "pow.pool.clear" => Ok(Transaction::EntropyPoolClear),
+            // Tuning commands
+            "tuning.set" => self.parse_tuning_set(&parts[1..]),
+            "tuning.random" => self.parse_tuning_random(&parts[1..]),
+            "tuning.clear" => Ok(Transaction::TuningClear),
+            "tuning.show" => Ok(Transaction::TuningShow),
+            // Quick setups
+            "setup.basic" => Ok(Transaction::SetupBasic),
+            "setup.fm" => Ok(Transaction::SetupFM),
+            "setup.pad" => Ok(Transaction::SetupPad),
+            "setup.drums" => Ok(Transaction::SetupDrums),
+            // Pathology commands
+            "path" | "pathology" => self.parse_pathology(&parts[1..]),
+            "path.list" => Ok(Transaction::PathologyList),
+            "help" => Err(anyhow!("Commands: node.add, connect, param.set, setup.*, pow.mine, tuning.*, path.*")),
             _ => Err(anyhow!("Unknown command: {}", parts[0])),
         }
+    }
+
+    fn parse_pathology(&self, args: &[&str]) -> Result<Transaction> {
+        if args.is_empty() {
+            return Err(anyhow!("Usage: path <name> [param=value]\n\
+                Available: irrational-meter, golden-polyrhythm, event-horizon, pitch-drift,\n\
+                anchorfree, subliminal, chaos-groove, saboteur, phantom-voices, trap, unmeasurable"));
+        }
+
+        let name = args[0].to_string();
+
+        // Parse optional parameters
+        let mut params: Vec<(String, f64)> = Vec::new();
+        for arg in &args[1..] {
+            if let Some(eq_pos) = arg.find('=') {
+                let key = arg[..eq_pos].to_string();
+                if let Ok(val) = arg[eq_pos + 1..].parse::<f64>() {
+                    params.push((key, val));
+                }
+            }
+        }
+
+        Ok(Transaction::PathologyApply { name, params })
     }
 
     fn parse_node_add(&self, args: &[&str]) -> Result<Transaction> {
@@ -115,6 +154,37 @@ impl CommandParser {
 
         let bpm = args[0].parse::<f32>()?;
         Ok(Transaction::SetTempo { bpm })
+    }
+
+    fn parse_pow_mine(&self, args: &[&str]) -> Result<Transaction> {
+        if args.is_empty() {
+            return Err(anyhow!("Usage: pow.mine <nonce_seed>"));
+        }
+
+        let nonce_seed = args.join(" ");
+        Ok(Transaction::PowMine { nonce_seed })
+    }
+
+    fn parse_tuning_set(&self, args: &[&str]) -> Result<Transaction> {
+        if args.is_empty() {
+            return Err(anyhow!("Usage: tuning.set <hash_hex>"));
+        }
+
+        let hash_hex = args[0].to_string();
+        Ok(Transaction::TuningSetFromHash { hash_hex })
+    }
+
+    fn parse_tuning_random(&self, args: &[&str]) -> Result<Transaction> {
+        let seed = if args.is_empty() {
+            // Use current time as seed if none provided
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos() as u64)
+                .unwrap_or(42)
+        } else {
+            args[0].parse::<u64>().unwrap_or(42)
+        };
+        Ok(Transaction::TuningSetRandom { seed })
     }
 }
 

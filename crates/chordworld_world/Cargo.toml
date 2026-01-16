@@ -7,6 +7,8 @@ license.workspace = true
 [dependencies]
 chordworld_core = { workspace = true }
 chordworld_dsp = { workspace = true }
+chordworld_pow = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+blake3 = { workspace = true }

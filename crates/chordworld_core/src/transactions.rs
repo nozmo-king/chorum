@@ -178,6 +178,39 @@ pub enum Transaction {
     SetLPB {
         lpb: u32, // Lines per beat
     },
+
+    // 21e8 Entropy operations
+    PowMine {
+        nonce_seed: String,
+    },
+
+    EntropyPoolClear,
+
+    TuningSetFromHash {
+        hash_hex: String,
+    },
+
+    TuningSetRandom {
+        seed: u64,
+    },
+
+    TuningClear,
+
+    TuningShow,
+
+    // Quick setups
+    SetupBasic,
+    SetupFM,
+    SetupPad,
+    SetupDrums,
+
+    // Pathology operations (hostile edge cases)
+    PathologyApply {
+        name: String,
+        params: Vec<(String, f64)>,
+    },
+
+    PathologyList,
 }
 
 /// Transaction record for persistence

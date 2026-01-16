@@ -4,6 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[[bin]]
+name = "render_test"
+path = "src/bin/render_test.rs"
+
 [dependencies]
 chordworld_core = { workspace = true }
 chordworld_world = { workspace = true }

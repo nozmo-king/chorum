@@ -3,16 +3,20 @@
 //! This crate defines the fundamental types, IDs, transactions, events,
 //! and persistence schemas used throughout CHORDWORLD.
 
-pub mod ids;
-pub mod events;
-pub mod transactions;
 pub mod doctrine;
-pub mod version;
+pub mod events;
+pub mod ids;
+pub mod pathologies;
 pub mod time;
+pub mod tracker;
+pub mod transactions;
+pub mod version;
 
-pub use ids::*;
-pub use events::*;
-pub use transactions::*;
 pub use doctrine::*;
-pub use version::*;
+pub use events::*;
+pub use ids::*;
+pub use pathologies::*;
 pub use time::*;
+pub use tracker::*;
+pub use transactions::*;
+pub use version::*;

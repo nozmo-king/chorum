@@ -243,8 +243,10 @@ name = "chordworld_world"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "chordworld_core",
  "chordworld_dsp",
+ "chordworld_pow",
  "serde",
  "thiserror",
 ]
